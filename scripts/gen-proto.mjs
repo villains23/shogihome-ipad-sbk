@@ -9,7 +9,7 @@ const root = path.resolve(__dirname, "..");
 const pluginPath = path.resolve(root, "node_modules/.bin/protoc-gen-ts_proto");
 
 const protoFiles = [
-  "src/background/book/proto/sbk.proto",
+  "src/common/book/proto/sbk.proto",
   // Add more .proto files here as needed
 ];
 

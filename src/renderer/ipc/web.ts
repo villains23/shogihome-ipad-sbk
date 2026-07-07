@@ -17,7 +17,8 @@ import { emptyLayoutProfileList } from "@/common/settings/layout.js";
 import * as uri from "@/common/uri.js";
 import { basename } from "@/renderer/helpers/path.js";
 import { ProcessArgs } from "@/common/ipc/process";
-import { BookFormat } from "@/common/book.js";
+import { BookFormat, BookMove } from "@/common/book.js";
+import { decodeSbkBook } from "@/common/book/sbk_decode.js";
 
 enum STORAGE_KEY {
   APP_SETTINGS = "appSetting",
@@ -30,6 +31,10 @@ enum STORAGE_KEY {
 }
 
 const fileCache = new Map<string, ArrayBuffer>();
+
+// Web/PWA 向けインメモリ定跡ストア（.sbk 読み込み専用）
+const webBookStore = new Map<number, Map<string, BookMove[]>>();
+const webBookFormat = new Map<number, BookFormat>();
 
 // Electron を使わずにシンプルな Web アプリケーションとして実行した場合に使用します。
 export const webAPI: Bridge = {
@@ -176,6 +181,20 @@ export const webAPI: Bridge = {
     input.setAttribute("type", "file");
     input.setAttribute("accept", formats.join(","));
     return new Promise<string>((resolve, reject) => {
+      let settled = false;
+      const settle = (fn: () => void) => {
+        if (!settled) {
+          settled = true;
+          window.removeEventListener("focus", onWindowFocus);
+          fn();
+        }
+      };
+      // iOS Safari does not fire oncancel for programmatically triggered file inputs.
+      // Detect dismissal via window focus restored after the picker closes.
+      const onWindowFocus = () => {
+        setTimeout(() => settle(() => reject(new Error("invalid file"))), 500);
+      };
+      window.addEventListener("focus", onWindowFocus);
       input.click();
       input.onchange = () => {
         const file = input.files?.[0];
@@ -186,17 +205,17 @@ export const webAPI: Bridge = {
               const fileURI = uri.issueTempFileURI(file.name);
               fileCache.clear();
               fileCache.set(fileURI, data);
-              resolve(fileURI);
+              settle(() => resolve(fileURI));
             })
             .catch((error) => {
-              reject(error);
+              settle(() => reject(error));
             });
         } else {
-          reject(new Error("invalid file"));
+          settle(() => reject(new Error("invalid file")));
         }
       };
       input.oncancel = () => {
-        resolve("");
+        settle(() => resolve(""));
       };
     });
   },
@@ -255,22 +274,73 @@ export const webAPI: Bridge = {
 
   // Book
   async showOpenBookDialog(): Promise<string> {
-    throw new Error(t.thisFeatureNotAvailableOnWebApp);
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", ".sbk");
+    return new Promise<string>((resolve, reject) => {
+      let settled = false;
+      const settle = (fn: () => void) => {
+        if (!settled) {
+          settled = true;
+          window.removeEventListener("focus", onWindowFocus);
+          fn();
+        }
+      };
+      // iOS Safari does not fire oncancel for programmatically triggered file inputs.
+      // Detect dismissal via window focus restored after the picker closes.
+      const onWindowFocus = () => {
+        setTimeout(() => settle(() => resolve("")), 500);
+      };
+      window.addEventListener("focus", onWindowFocus);
+      input.click();
+      input.onchange = () => {
+        const file = input.files?.[0];
+        if (file) {
+          file
+            .arrayBuffer()
+            .then((data) => {
+              const fileURI = uri.issueTempFileURI(file.name);
+              fileCache.set(fileURI, data);
+              settle(() => resolve(fileURI));
+            })
+            .catch((error) => {
+              settle(() => reject(error));
+            });
+        } else {
+          settle(() => resolve(""));
+        }
+      };
+      input.oncancel = () => {
+        settle(() => resolve(""));
+      };
+    });
   },
   async showSaveBookDialog(): Promise<string> {
     throw new Error(t.thisFeatureNotAvailableOnWebApp);
   },
-  async clearBook(): Promise<void> {
-    throw new Error(t.thisFeatureNotAvailableOnWebApp);
+  async clearBook(session: number): Promise<void> {
+    webBookStore.delete(session);
+    webBookFormat.delete(session);
   },
-  async openBook(): Promise<void> {
-    throw new Error(t.thisFeatureNotAvailableOnWebApp);
+  async openBook(session: number, path: string): Promise<void> {
+    if (!path.endsWith(".sbk")) {
+      throw new Error(t.thisFeatureNotAvailableOnWebApp);
+    }
+    const buffer = fileCache.get(path);
+    if (!buffer) {
+      throw new Error(t.thisFeatureNotAvailableOnWebApp);
+    }
+    fileCache.delete(path);
+    const { entries } = decodeSbkBook(new Uint8Array(buffer));
+    webBookStore.set(session, entries);
+    webBookFormat.set(session, "sbk");
   },
   async openBookAsNewSession(): Promise<number> {
     throw new Error(t.thisFeatureNotAvailableOnWebApp);
   },
-  async closeBookSession(): Promise<void> {
-    throw new Error(t.thisFeatureNotAvailableOnWebApp);
+  async closeBookSession(session: number): Promise<void> {
+    webBookStore.delete(session);
+    webBookFormat.delete(session);
   },
   async saveBook(): Promise<void> {
     throw new Error(t.thisFeatureNotAvailableOnWebApp);
@@ -278,11 +348,15 @@ export const webAPI: Bridge = {
   async exportBook(): Promise<void> {
     throw new Error(t.thisFeatureNotAvailableOnWebApp);
   },
-  async getBookFormat(): Promise<BookFormat> {
-    return "yane2016";
+  async getBookFormat(session: number): Promise<BookFormat> {
+    return webBookFormat.get(session) ?? "yane2016";
   },
-  async searchBookMoves(): Promise<string> {
-    return "[]";
+  async searchBookMoves(session: number, sfen: string): Promise<string> {
+    const entries = webBookStore.get(session);
+    if (!entries) {
+      return "[]";
+    }
+    return JSON.stringify(entries.get(sfen) ?? []);
   },
   async updateBookMove(): Promise<void> {
     throw new Error(t.thisFeatureNotAvailableOnWebApp);

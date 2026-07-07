@@ -533,6 +533,11 @@ export const en: Texts = {
   dialogBackdrop: "Dialog Backdrop",
   record: "Record",
   book: "Book",
+  openBookFile: "Open Book File",
+  sbkFileIsBookNotRecord:
+    '.sbk is a book file. Please use "Open Book File" from the menu.',
+  noBookFileLoaded: "No book file loaded",
+  noBookMovesForThisPosition: "No book moves for this position",
   bookInfo: "Book Information",
   resetBook: "Initialize Book",
   moveEvaluation: "Move Evaluation",

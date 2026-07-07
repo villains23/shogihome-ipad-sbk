@@ -526,6 +526,10 @@ export type Texts = {
   dialogBackdrop: string;
   record: string;
   book: string;
+  openBookFile: string;
+  sbkFileIsBookNotRecord: string;
+  noBookFileLoaded: string;
+  noBookMovesForThisPosition: string;
   bookInfo: string;
   resetBook: string;
   moveEvaluation: string;

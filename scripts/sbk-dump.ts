@@ -5,7 +5,7 @@
 
 import fs from "node:fs";
 import { stringify } from "yaml";
-import { SBook, SBookMoveEvaluation } from "@/background/book/proto/sbk.js";
+import { SBook, SBookMoveEvaluation } from "@/common/book/proto/sbk.js";
 
 const path = process.argv[2];
 if (!path) {

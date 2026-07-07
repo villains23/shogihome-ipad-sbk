@@ -9,9 +9,9 @@ import {
   SBookState,
   SBook,
   SBookMove,
-} from "./proto/sbk.js";
+} from "@/common/book/proto/sbk.js";
 import { BookEntry, mergeBookEntries, SbkBook, SbkEval, SbkOnTheFlyLUT } from "./types.js";
-import { fromSbkMove, toSbkMove } from "./sbk_move.js";
+import { fromSbkMove, toSbkMove } from "@/common/book/sbk_move.js";
 import { BookMove } from "@/common/book.js";
 import { positionToPackedSfen, sfenToPackedSfen, packedSfenToSfen } from "./packed_sfen.js";
 

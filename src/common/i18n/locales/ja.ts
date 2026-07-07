@@ -533,6 +533,11 @@ export const ja: Texts = {
   dialogBackdrop: "ダイアログ表示中の暗転",
   record: "棋譜",
   book: "定跡",
+  openBookFile: "定跡ファイルを開く",
+  sbkFileIsBookNotRecord:
+    ".sbk は定跡ファイルです。メニューの「定跡ファイルを開く」から開いてください。",
+  noBookFileLoaded: "定跡ファイルが読み込まれていません",
+  noBookMovesForThisPosition: "この局面に定跡候補はありません",
   bookInfo: "定跡の情報",
   resetBook: "定跡の初期化",
   moveEvaluation: "指し手評価",

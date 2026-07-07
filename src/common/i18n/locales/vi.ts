@@ -543,6 +543,11 @@ export const vi: Texts = {
   dialogBackdrop: "Nền hộp thoại",
   record: "Kỳ phổ",
   book: "Định thức",
+  openBookFile: "定跡ファイルを開く", // TODO: Translate
+  sbkFileIsBookNotRecord:
+    ".sbk は定跡ファイルです。メニューの「定跡ファイルを開く」から開いてください。", // TODO: Translate
+  noBookFileLoaded: "定跡ファイルが読み込まれていません", // TODO: Translate
+  noBookMovesForThisPosition: "この局面に定跡候補はありません", // TODO: Translate
   bookInfo: "定跡の情報", // TODO: Translate
   resetBook: "定跡の初期化", // TODO: Translate
   moveEvaluation: "指し手評価", // TODO: Translate

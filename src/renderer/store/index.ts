@@ -1357,6 +1357,9 @@ class Store {
         if (!path) {
           return;
         }
+        if (path.toLowerCase().endsWith(".sbk")) {
+          throw new Error(t.sbkFileIsBookNotRecord);
+        }
         const appSettings = useAppSettings();
         const autoDetect = appSettings.textDecodingRule == TextDecodingRule.AUTO_DETECT;
         return api.openRecord(path).then((data) => {

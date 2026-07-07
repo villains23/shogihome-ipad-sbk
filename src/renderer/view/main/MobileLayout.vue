@@ -36,6 +36,14 @@
           v-show="bottomUIType === BottomUIType.INFO"
           :size="bottomViewSize"
         />
+        <MobileBookView
+          v-if="showRecordViewOnBottom"
+          v-show="bottomUIType === BottomUIType.BOOK"
+          :style="{
+            width: `${windowSize.width}px`,
+            height: `${bottomViewSize.height}px`,
+          }"
+        />
         <HorizontalSelector
           v-if="showRecordViewOnBottom"
           v-model:value="bottomUIType"
@@ -43,6 +51,7 @@
             { label: t.record, value: BottomUIType.RECORD },
             { label: t.comments, value: BottomUIType.COMMENT },
             { label: t.recordProperties, value: BottomUIType.INFO },
+            { label: t.book, value: BottomUIType.BOOK },
           ]"
           :height="selectorHeight"
         />
@@ -69,11 +78,16 @@
           }"
         />
         <RecordInfo v-show="sideUIType === SideUIType.INFO" :size="sideViewSize" />
+        <MobileBookView
+          v-show="sideUIType === SideUIType.BOOK"
+          :style="{ height: `${sideViewSize.height}px` }"
+        />
         <HorizontalSelector
           v-model:value="sideUIType"
           :items="[
             { label: t.record, value: SideUIType.RECORD },
             { label: t.recordProperties, value: SideUIType.INFO },
+            { label: t.book, value: SideUIType.BOOK },
           ]"
           :height="selectorHeight"
         />
@@ -87,10 +101,12 @@ enum BottomUIType {
   RECORD = "record",
   COMMENT = "comment",
   INFO = "info",
+  BOOK = "book",
 }
 enum SideUIType {
   RECORD = "record",
   INFO = "info",
+  BOOK = "book",
 }
 </script>
 
@@ -102,6 +118,7 @@ import BoardPane from "@/renderer/view/main/BoardPane.vue";
 import RecordPane from "@/renderer/view/main/RecordPane.vue";
 import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
 import MobileControls from "./MobileControls.vue";
+import MobileBookView from "./MobileBookView.vue";
 import RecordComment from "@/renderer/view/tab/RecordComment.vue";
 import HorizontalSelector from "@/renderer/view/primitive/HorizontalSelector.vue";
 import { t } from "@/common/i18n";

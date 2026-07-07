@@ -32,6 +32,10 @@
           <Icon :icon="IconType.OPEN" />
           <div class="label">{{ t.open }}</div>
         </button>
+        <button v-if="!isNative()" :disabled="!states.openBookFile" @click="onOpenBookFile">
+          <Icon :icon="IconType.OPEN" />
+          <div class="label">{{ t.openBookFile }}</div>
+        </button>
         <button v-if="isNative()" :disabled="!states.save" @click="onSave">
           <Icon :icon="IconType.SAVE" />
           <div class="label">{{ t.saveOverwrite }}</div>
@@ -152,12 +156,14 @@ import { openCopyright } from "@/renderer/helpers/copyright";
 import { RecordFileFormat } from "@/common/file/record";
 import InitialPositionMenu from "@/renderer/view/menu/InitialPositionMenu.vue";
 import MobileGameMenu from "@/renderer/view/menu/MobileGameMenu.vue";
+import { useBookStore } from "@/renderer/store/book";
 
 const emit = defineEmits<{
   close: [];
 }>();
 
 const store = useStore();
+const bookStore = useBookStore();
 const dialog = ref();
 const isInitialPositionMenuVisible = ref(false);
 const isGameMenuVisible = ref(false);
@@ -192,6 +198,10 @@ const onNewFile = () => {
 };
 const onOpen = () => {
   store.openRecord();
+  emit("close");
+};
+const onOpenBookFile = () => {
+  bookStore.openBookFile();
   emit("close");
 };
 const onSave = () => {
@@ -277,6 +287,7 @@ const states = computed(() => {
     stopGame: store.appState === AppState.GAME,
     newFile: store.appState === AppState.NORMAL,
     open: store.appState === AppState.NORMAL,
+    openBookFile: store.appState === AppState.NORMAL,
     save: store.appState === AppState.NORMAL,
     saveAs: store.appState === AppState.NORMAL,
     history: store.appState === AppState.NORMAL,

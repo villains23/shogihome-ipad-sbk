@@ -15,6 +15,7 @@ import { flippedSFEN, flippedUSIMove } from "@/common/helpers/sfen.js";
 export class BookStore {
   private _moves: BookMoveEx[] = [];
   private _format: BookFormat = "yane2016";
+  private _isLoaded = false;
   private _reactive: UnwrapNestedRefs<BookStore>;
 
   constructor(private record: ImmutableRecord) {
@@ -31,6 +32,10 @@ export class BookStore {
 
   get format(): BookFormat {
     return this._format;
+  }
+
+  get isLoaded(): boolean {
+    return this._isLoaded;
   }
 
   async reloadBookMoves() {
@@ -72,6 +77,7 @@ export class BookStore {
           .clearBook(defaultBookSession, format)
           .then(() => {
             this._format = format || "yane2016";
+            this._isLoaded = false;
             return this.reloadBookMoves();
           })
           .catch((e) => {
@@ -85,27 +91,34 @@ export class BookStore {
   }
 
   openBookFile() {
-    useBusyState().retain();
+    // Show the file picker before retaining busy state so that iOS Safari does not
+    // block the native picker behind a "processing" overlay, and so a cancelled
+    // picker never leaves the UI stuck in a loading state.
     api
       .showOpenBookDialog()
       .then(async (path) => {
         if (!path) {
           return;
         }
-        await api.openBook(defaultBookSession, path, {
-          yaneOnTheFlyThresholdMB: useAppSettings().yaneBookOnTheFlyThresholdMB,
-          aperyOnTheFlyThresholdMB: useAppSettings().aperyBookOnTheFlyThresholdMB,
-          sbkOnTheFlyThresholdMB: useAppSettings().sbkOnTheFlyThresholdMB,
-          ybbOnTheFlyThresholdMB: useAppSettings().ybbOnTheFlyThresholdMB,
-        });
-        this._format = await api.getBookFormat(defaultBookSession);
-        await this.reloadBookMoves();
+        useBusyState().retain();
+        try {
+          await api.openBook(defaultBookSession, path, {
+            yaneOnTheFlyThresholdMB: useAppSettings().yaneBookOnTheFlyThresholdMB,
+            aperyOnTheFlyThresholdMB: useAppSettings().aperyBookOnTheFlyThresholdMB,
+            sbkOnTheFlyThresholdMB: useAppSettings().sbkOnTheFlyThresholdMB,
+            ybbOnTheFlyThresholdMB: useAppSettings().ybbOnTheFlyThresholdMB,
+          });
+          this._format = await api.getBookFormat(defaultBookSession);
+          this._isLoaded = true;
+          await this.reloadBookMoves();
+        } catch (e) {
+          useErrorStore().add(e);
+        } finally {
+          useBusyState().release();
+        }
       })
       .catch((e) => {
         useErrorStore().add(e);
-      })
-      .finally(() => {
-        useBusyState().release();
       });
   }
 
