@@ -6,25 +6,33 @@
     <div v-else-if="moveList.length === 0" class="empty-message">
       {{ t.noBookMovesForThisPosition }}
     </div>
-    <div v-else class="list">
-      <div
-        v-for="entry of moveList"
-        :key="entry.usi"
-        class="move-row"
-        @click="onPlay(entry.move)"
-      >
-        <span class="move-name">{{ entry.moveName }}</span>
-        <span class="count">{{ entry.count !== undefined ? `× ${entry.count}` : "-" }}</span>
-        <span
-          v-if="entry.evaluationLabel"
-          class="eval-badge"
-          :class="entry.evaluationClass"
-          >{{ entry.evaluationLabel }}</span
+    <template v-else>
+      <div class="toolbar">
+        <button
+          class="arrow-toggle"
+          :class="{ active: bookStore.bookArrowsVisible }"
+          @click="bookStore.toggleBookArrows()"
         >
-        <span v-else class="eval-badge eval-none">-</span>
-        <span v-if="entry.repetition" class="repetition-badge">{{ t.repetition }}</span>
+          {{ t.showBookArrows }}
+        </button>
       </div>
-    </div>
+      <div class="list">
+        <div
+          v-for="entry of moveList"
+          :key="entry.usi"
+          class="move-row"
+          @click="onPlay(entry.move)"
+        >
+          <span class="move-name">{{ entry.moveName }}</span>
+          <span class="count">{{ entry.count !== undefined ? `× ${entry.count}` : "-" }}</span>
+          <span v-if="entry.evaluationLabel" class="eval-badge" :class="entry.evaluationClass">{{
+            entry.evaluationLabel
+          }}</span>
+          <span v-else class="eval-badge eval-none">-</span>
+          <span v-if="entry.repetition" class="repetition-badge">{{ t.repetition }}</span>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -60,7 +68,9 @@ const moveList = computed(() => {
   return bookStore.moves
     .map((entry) => {
       const move = position.createMoveByUSI(entry.usi);
-      if (!move) return null;
+      if (!move) {
+        return null;
+      }
       return {
         move,
         usi: entry.usi,
@@ -89,6 +99,28 @@ const onPlay = (move: Move) => {
   height: 100%;
   overflow-y: auto;
   box-sizing: border-box;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--text-separator-color);
+}
+.arrow-toggle {
+  font-size: 0.8em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--text-separator-color);
+  background-color: var(--text-bg-color);
+  color: var(--text-color);
+  cursor: pointer;
+  opacity: 0.55;
+}
+.arrow-toggle.active {
+  opacity: 1;
+  background-color: var(--pushed-selector-bg-color);
+  color: var(--pushed-selector-color);
+  border-color: var(--pushed-selector-bg-color);
 }
 .empty-message {
   padding: 16px;

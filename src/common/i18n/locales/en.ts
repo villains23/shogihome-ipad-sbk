@@ -534,10 +534,10 @@ export const en: Texts = {
   record: "Record",
   book: "Book",
   openBookFile: "Open Book File",
-  sbkFileIsBookNotRecord:
-    '.sbk is a book file. Please use "Open Book File" from the menu.',
+  sbkFileIsBookNotRecord: '.sbk is a book file. Please use "Open Book File" from the menu.',
   noBookFileLoaded: "No book file loaded",
   noBookMovesForThisPosition: "No book moves for this position",
+  showBookArrows: "Show Arrows",
   bookInfo: "Book Information",
   resetBook: "Initialize Book",
   moveEvaluation: "Move Evaluation",

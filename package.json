@@ -27,6 +27,7 @@
     "build": "npm run install:esbuild && vite build -c vite.config-pwa.mts --outDir docs/webapp",
     "build:dev": "npm run install:esbuild && vite build -c vite.config-pwa.mts --outDir docs/webapp-dev",
     "preview": "npm run install:esbuild && vite preview",
+    "preview:web": "vite preview -c vite.config-pwa.mts --outDir docs/webapp --port 4173",
     "test": "npm run install:esbuild && npm run install:electron && vitest run",
     "bench": "npm run install:esbuild && npm run install:electron && vitest bench",
     "coverage": "npm test -- --coverage",

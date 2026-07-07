@@ -538,6 +538,7 @@ export const ja: Texts = {
     ".sbk は定跡ファイルです。メニューの「定跡ファイルを開く」から開いてください。",
   noBookFileLoaded: "定跡ファイルが読み込まれていません",
   noBookMovesForThisPosition: "この局面に定跡候補はありません",
+  showBookArrows: "矢印表示",
   bookInfo: "定跡の情報",
   resetBook: "定跡の初期化",
   moveEvaluation: "指し手評価",

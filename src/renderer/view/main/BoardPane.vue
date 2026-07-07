@@ -21,7 +21,7 @@
       :max-size="maxSize"
       :position="store.record.position"
       :last-move="lastMove"
-      :candidates="store.candidates"
+      :candidates="allCandidates"
       :flip="appSettings.boardFlipping"
       :hide-clock="store.appState !== AppState.GAME && store.appState !== AppState.CSA_GAME"
       :mobile="isMobileWebApp()"
@@ -77,6 +77,7 @@ import {
 import { BoardLayoutType } from "@/common/settings/layout";
 import { isMobileWebApp } from "@/renderer/ipc/api";
 import { fileURLToCustomSchemeURL } from "@/common/url";
+import { useBookStore } from "@/renderer/store/book";
 
 defineProps({
   maxSize: {
@@ -106,6 +107,24 @@ const emit = defineEmits<{
 
 const store = useStore();
 const appSettings = useAppSettings();
+const bookStore = useBookStore();
+
+const BOOK_ARROW_OPACITY = 0.6;
+
+const allCandidates = computed(() => {
+  const base = store.candidates;
+  if (!isMobileWebApp() || !bookStore.isLoaded || !bookStore.bookArrowsVisible) {
+    return base;
+  }
+  const position = store.record.position;
+  const bookCandidates = bookStore.moves.flatMap((entry) => {
+    const move = position.createMoveByUSI(entry.usi);
+    return move ? [{ move, opacity: BOOK_ARROW_OPACITY }] : [];
+  });
+  // eslint-disable-next-line no-console
+  console.log("[SBK] allCandidates: engine =", base.length, "book arrows =", bookCandidates.length, "total =", base.length + bookCandidates.length);
+  return [...base, ...bookCandidates];
+});
 
 const onResize = (size: RectSize) => {
   emit("resize", size);

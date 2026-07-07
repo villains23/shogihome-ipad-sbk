@@ -279,31 +279,46 @@ export const webAPI: Bridge = {
     input.setAttribute("accept", ".sbk");
     return new Promise<string>((resolve, reject) => {
       let settled = false;
+      // Track the cancel-detection timer so we can cancel it when a file is actually chosen.
+      let focusTimeoutId: ReturnType<typeof setTimeout> | null = null;
       const settle = (fn: () => void) => {
         if (!settled) {
           settled = true;
           window.removeEventListener("focus", onWindowFocus);
+          if (focusTimeoutId !== null) {
+            clearTimeout(focusTimeoutId);
+            focusTimeoutId = null;
+          }
           fn();
         }
       };
       // iOS Safari does not fire oncancel for programmatically triggered file inputs.
       // Detect dismissal via window focus restored after the picker closes.
       const onWindowFocus = () => {
-        setTimeout(() => settle(() => resolve("")), 500);
+        focusTimeoutId = setTimeout(() => settle(() => resolve("")), 500);
       };
       window.addEventListener("focus", onWindowFocus);
       input.click();
       input.onchange = () => {
         const file = input.files?.[0];
         if (file) {
+          console.log("[SBK] file selected:", file.name, "size:", file.size);
+          // Cancel cancel-detection immediately so the async read can't race with the timer.
+          window.removeEventListener("focus", onWindowFocus);
+          if (focusTimeoutId !== null) {
+            clearTimeout(focusTimeoutId);
+            focusTimeoutId = null;
+          }
           file
             .arrayBuffer()
             .then((data) => {
+              console.log("[SBK] arrayBuffer read, bytes:", data.byteLength);
               const fileURI = uri.issueTempFileURI(file.name);
               fileCache.set(fileURI, data);
               settle(() => resolve(fileURI));
             })
             .catch((error) => {
+              console.log("[SBK] arrayBuffer error:", error);
               settle(() => reject(error));
             });
         } else {
@@ -311,6 +326,7 @@ export const webAPI: Bridge = {
         }
       };
       input.oncancel = () => {
+        console.log("[SBK] file picker cancelled");
         settle(() => resolve(""));
       };
     });
@@ -323,17 +339,20 @@ export const webAPI: Bridge = {
     webBookFormat.delete(session);
   },
   async openBook(session: number, path: string): Promise<void> {
-    if (!path.endsWith(".sbk")) {
+    console.log("[SBK] openBook session:", session, "path:", path);
+    if (!path.toLowerCase().endsWith(".sbk")) {
       throw new Error(t.thisFeatureNotAvailableOnWebApp);
     }
     const buffer = fileCache.get(path);
     if (!buffer) {
+      console.log("[SBK] ERROR: fileCache miss for path:", path);
       throw new Error(t.thisFeatureNotAvailableOnWebApp);
     }
     fileCache.delete(path);
     const { entries } = decodeSbkBook(new Uint8Array(buffer));
     webBookStore.set(session, entries);
     webBookFormat.set(session, "sbk");
+    console.log("[SBK] book stored, sfen entry count:", entries.size);
   },
   async openBookAsNewSession(): Promise<number> {
     throw new Error(t.thisFeatureNotAvailableOnWebApp);

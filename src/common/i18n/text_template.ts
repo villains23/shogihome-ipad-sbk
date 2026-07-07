@@ -530,6 +530,7 @@ export type Texts = {
   sbkFileIsBookNotRecord: string;
   noBookFileLoaded: string;
   noBookMovesForThisPosition: string;
+  showBookArrows: string;
   bookInfo: string;
   resetBook: string;
   moveEvaluation: string;

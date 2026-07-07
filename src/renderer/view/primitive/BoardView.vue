@@ -66,14 +66,52 @@
         </div>
       </div>
 
-      <img
-        v-for="arrow in arrows"
-        :key="arrow.id"
-        class="arrows"
-        src="/arrow/arrow.svg"
-        :style="arrow.style"
-        style="object-fit: cover; object-position: left top"
-      />
+      <!-- 候補手矢印オーバーレイ -->
+      <svg
+        v-if="arrows.length > 0"
+        class="arrow-overlay"
+        :width="main.frame.size.width"
+        :height="main.frame.size.height"
+      >
+        <defs>
+          <marker
+            id="board-arrowhead"
+            :markerWidth="arrowHeadLength"
+            :markerHeight="arrowWidth"
+            :refX="arrowHeadLength"
+            :refY="arrowWidth / 2"
+            orient="auto"
+            markerUnits="userSpaceOnUse"
+          >
+            <path
+              :d="`M 0 0 L ${arrowHeadLength} ${arrowWidth / 2} L 0 ${arrowWidth} Z`"
+              fill="#fe0000"
+            />
+          </marker>
+        </defs>
+        <template v-for="arrow in arrows" :key="arrow.id">
+          <line
+            v-if="!arrow.isDrop"
+            :x1="arrow.x1"
+            :y1="arrow.y1"
+            :x2="arrow.x2"
+            :y2="arrow.y2"
+            stroke="#fe0000"
+            :stroke-width="arrowStrokeWidth"
+            :stroke-opacity="arrow.opacity"
+            stroke-linecap="round"
+            marker-end="url(#board-arrowhead)"
+          />
+          <circle
+            v-else
+            :cx="arrow.x2"
+            :cy="arrow.y2"
+            :r="arrowWidth / 2"
+            fill="#fe0000"
+            :fill-opacity="arrow.opacity"
+          />
+        </template>
+      </svg>
       <div
         v-for="arrow in arrows"
         v-show="arrow.labelText"
@@ -255,6 +293,8 @@ import {
 type CandidateMove = {
   move: Move;
   score?: number; // 手番側視点の数値スコア（showArrowScore が有効な場合のみ設定）
+  opacity?: number; // 矢印の不透明度（0〜1、省略時は1）
+  weight?: number; // 矢印の太さ倍率（省略時は1）
 };
 
 type State = {
@@ -953,8 +993,11 @@ const whiteHand = computed(() => {
   );
 });
 
+const arrowWidth = computed(() => 30 * main.value.ratio);
+const arrowHeadLength = computed(() => 24 * main.value.ratio);
+const arrowStrokeWidth = computed(() => arrowWidth.value * 0.36);
+
 const arrows = computed(() => {
-  const arrowWidth = 30 * main.value.ratio;
   const n = props.candidates.length;
   const bestScore = props.candidates.reduce<number | undefined>(
     (best, c) => (c.score !== undefined && (best === undefined || c.score > best) ? c.score : best),
@@ -963,31 +1006,37 @@ const arrows = computed(() => {
   return props.candidates.map((candidate, index) => {
     const move = candidate.move;
     const boardBase = layoutBuilder.value.boardBasePoint;
-    const blackHandBase = layoutBuilder.value.blackHandBasePoint;
-    const whiteHandBase = layoutBuilder.value.whiteHandBasePoint;
-    const start =
-      move.from instanceof Square
-        ? boardBase.add(boardLayoutBuilder.value.centerOfSquare(move.from))
-        : move.color === Color.BLACK
-          ? blackHandBase.add(
-              handLayoutBuilder.value.centerOfPieceType(
-                props.position.hand(Color.BLACK),
-                Color.BLACK,
-                move.from,
-              ),
-            )
-          : whiteHandBase.add(
-              handLayoutBuilder.value.centerOfPieceType(
-                props.position.hand(Color.WHITE),
-                Color.WHITE,
-                move.from,
-              ),
-            );
-    const end = boardBase.add(boardLayoutBuilder.value.centerOfSquare(move.to));
-    const middle = start.add(end).multiply(0.5);
-    const distance = start.distanceTo(end);
-    const angle = start.angleTo(end) - Math.PI;
-    // z-index 決定のためスコアに基づいてランクを計算（同率は同順位）
+    const isDrop = !(move.from instanceof Square);
+    let x1: number, y1: number;
+    if (move.from instanceof Square) {
+      const pt = boardBase.add(boardLayoutBuilder.value.centerOfSquare(move.from));
+      x1 = pt.x;
+      y1 = pt.y;
+    } else if (move.color === Color.BLACK) {
+      const pt = layoutBuilder.value.blackHandBasePoint.add(
+        handLayoutBuilder.value.centerOfPieceType(
+          props.position.hand(Color.BLACK),
+          Color.BLACK,
+          move.from,
+        ),
+      );
+      x1 = pt.x;
+      y1 = pt.y;
+    } else {
+      const pt = layoutBuilder.value.whiteHandBasePoint.add(
+        handLayoutBuilder.value.centerOfPieceType(
+          props.position.hand(Color.WHITE),
+          Color.WHITE,
+          move.from,
+        ),
+      );
+      x1 = pt.x;
+      y1 = pt.y;
+    }
+    const endPt = boardBase.add(boardLayoutBuilder.value.centerOfSquare(move.to));
+    const x2 = endPt.x;
+    const y2 = endPt.y;
+
     let labelText: string;
     let scoreRank: number;
     if (candidate.score !== undefined && bestScore !== undefined) {
@@ -1000,28 +1049,27 @@ const arrows = computed(() => {
       scoreRank = index + 1;
       labelText = "";
     }
-    const x = middle.x - distance / 2;
-    const y = middle.y - arrowWidth / 2;
-    // 矢印が水平に近いほどラベルをずらす（最大でフォントサイズ12px分）
-    // 矢印が水平より下向き（dy > |dx|）のときは上方向にオフセット
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
+
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const distance = Math.sqrt(dx * dx + dy * dy);
     const horizontalFactor = distance > 0 ? Math.abs(dx) / distance : 0;
     const labelOffsetY = dy > 0 ? -horizontalFactor * 12 : horizontalFactor * 12;
+
     return {
       id: move.usi,
+      x1,
+      y1,
+      x2,
+      y2,
+      isDrop,
+      opacity: candidate.opacity ?? 1,
       labelText,
-      style: {
-        left: x + "px",
-        top: y + "px",
-        width: distance + "px",
-        height: arrowWidth + "px",
-        transform: `rotate(${angle}rad)`,
-        zIndex: 100 + n - scoreRank,
-      },
       labelStyle: {
-        left: middle.x + "px",
-        top: middle.y + labelOffsetY + "px",
+        left: midX + "px",
+        top: midY + labelOffsetY + "px",
         zIndex: 100 + 2 * n - scoreRank,
       },
     };
@@ -1149,7 +1197,10 @@ const whitePlayerTimeSeverity = computed(() => {
 .hand.front {
   z-index: 12;
 }
-.arrows {
+.arrow-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
   z-index: 20;
   pointer-events: none;
 }

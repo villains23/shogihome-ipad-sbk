@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { BookFormat, BookMove, BookMoveEx, defaultBookSession } from "@/common/book.js";
 import { reactive, UnwrapNestedRefs } from "vue";
 import { useStore } from ".";
@@ -16,6 +17,7 @@ export class BookStore {
   private _moves: BookMoveEx[] = [];
   private _format: BookFormat = "yane2016";
   private _isLoaded = false;
+  private _bookArrowsVisible = true;
   private _reactive: UnwrapNestedRefs<BookStore>;
 
   constructor(private record: ImmutableRecord) {
@@ -38,9 +40,18 @@ export class BookStore {
     return this._isLoaded;
   }
 
+  get bookArrowsVisible(): boolean {
+    return this._bookArrowsVisible;
+  }
+
+  toggleBookArrows() {
+    this._bookArrowsVisible = !this._bookArrowsVisible;
+  }
+
   async reloadBookMoves() {
     try {
       const sfen = this.record.position.sfen;
+      console.log("[SBK] reloadBookMoves isLoaded:", this._isLoaded, "sfen:", sfen);
       const moves = await this.searchMoves(sfen);
       this._moves = moves.map((bookMove) => {
         const position = this.record.position.clone();
@@ -55,6 +66,7 @@ export class BookStore {
           repetition,
         } as BookMoveEx;
       });
+      console.log("[SBK] reloadBookMoves done, moves:", this._moves.length);
     } catch (e) {
       useErrorStore().add(e);
     }
@@ -97,6 +109,7 @@ export class BookStore {
     api
       .showOpenBookDialog()
       .then(async (path) => {
+        console.log("[SBK] showOpenBookDialog resolved:", path ? path : "(cancelled)");
         if (!path) {
           return;
         }
@@ -110,14 +123,18 @@ export class BookStore {
           });
           this._format = await api.getBookFormat(defaultBookSession);
           this._isLoaded = true;
+          console.log("[SBK] BookStore isLoaded:", this._isLoaded, "format:", this._format);
           await this.reloadBookMoves();
+          console.log("[SBK] openBookFile complete, moves:", this._moves.length);
         } catch (e) {
+          console.log("[SBK] ERROR in openBookFile:", e);
           useErrorStore().add(e);
         } finally {
           useBusyState().release();
         }
       })
       .catch((e) => {
+        console.log("[SBK] ERROR in showOpenBookDialog:", e);
         useErrorStore().add(e);
       });
   }
