@@ -153,6 +153,9 @@ const bridge: Bridge = {
   async loadRemoteTextFile(): Promise<string> {
     throw new Error("This feature is not available on command line tool");
   },
+  async fetchPolicyRate(): Promise<string> {
+    throw new Error("This feature is not available on command line tool");
+  },
   async convertRecordFiles(): Promise<string> {
     throw new Error("This feature is not available on command line tool");
   },

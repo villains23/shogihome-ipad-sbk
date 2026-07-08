@@ -122,7 +122,14 @@ const allCandidates = computed(() => {
     return move ? [{ move, opacity: BOOK_ARROW_OPACITY }] : [];
   });
   // eslint-disable-next-line no-console
-  console.log("[SBK] allCandidates: engine =", base.length, "book arrows =", bookCandidates.length, "total =", base.length + bookCandidates.length);
+  console.log(
+    "[SBK] allCandidates: engine =",
+    base.length,
+    "book arrows =",
+    bookCandidates.length,
+    "total =",
+    base.length + bookCandidates.length,
+  );
   return [...base, ...bookCandidates];
 });
 

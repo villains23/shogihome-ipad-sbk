@@ -311,6 +311,7 @@ export const en: Texts = {
   branchListMode: "Branch List Mode",
   previousMoveBranches: "Sibling Branches",
   nextMoveBranches: "Next Move Branches",
+  policyRateApiUrl: "Policy Rate API URL",
   bookmark: "Bookmark",
   bookmarkList: "Bookmarks",
   useBookmarkAsHeader: "Use Bookmark as Header",

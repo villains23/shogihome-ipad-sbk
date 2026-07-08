@@ -124,6 +124,9 @@ const api: Bridge = {
   async loadRemoteTextFile(url: string): Promise<string> {
     return await ipcRenderer.invoke(Background.LOAD_REMOTE_TEXT_FILE, url);
   },
+  async fetchPolicyRate(url: string, body: string): Promise<string> {
+    return await ipcRenderer.invoke(Background.FETCH_POLICY_RATE, url, body);
+  },
   async convertRecordFiles(json: string): Promise<string> {
     return await ipcRenderer.invoke(Background.CONVERT_RECORD_FILES, json);
   },

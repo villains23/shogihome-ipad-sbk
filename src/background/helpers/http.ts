@@ -30,6 +30,42 @@ const commonRules: WindowRule[] = isTest()
       { limit: 8, windowMs: 16 * 1000 },
     ];
 
+export async function postJson(url: string, body: string): Promise<string> {
+  const parsedUrl = new URL(url);
+  const options = {
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || undefined,
+    path: parsedUrl.pathname + parsedUrl.search,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": Buffer.byteLength(body),
+      "User-Agent": `ShogiHome/${getAppVersion()}`,
+    },
+  };
+  return new Promise((resolve, reject) => {
+    const request = url.startsWith("http://") ? http.request : https.request;
+    const req = request(options, (res) => {
+      if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+        res.resume();
+        reject(new Error(`HTTP ${res.statusCode}`));
+        return;
+      }
+      const chunks: Buffer[] = [];
+      res.on("data", (chunk: Buffer) => chunks.push(chunk));
+      res.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
+      res.on("error", reject);
+    });
+    req.setTimeout(5000, () => {
+      reject(new Error(`request timeout: ${url}`));
+      req.destroy();
+    });
+    req.on("error", reject);
+    req.write(body);
+    req.end();
+  });
+}
+
 export async function fetch(url: string): Promise<string> {
   const hostName = new URL(url).hostname;
   let limiter = domainLimiter.get(hostName);

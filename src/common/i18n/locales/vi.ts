@@ -321,6 +321,7 @@ export const vi: Texts = {
   branchListMode: "Hiển thị các nhánh",
   previousMoveBranches: "Các nước đã đi",
   nextMoveBranches: "Nước tiếp theo",
+  policyRateApiUrl: "採択率API URL", // TODO: Translate
   bookmark: "Đánh dấu",
   bookmarkList: "Đánh dấu",
   useBookmarkAsHeader: "Sử dụng đánh dấu làm đầu đề",

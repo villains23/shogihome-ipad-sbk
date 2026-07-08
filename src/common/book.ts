@@ -42,6 +42,7 @@ export type BookImportSummary = {
 
 export type BookMoveEx = BookMove & {
   repetition?: number; // 千日手
+  policyRate?: number; // 採択率API から取得した採択率 (0-100%)
 };
 
 export const defaultBookSession = 1;

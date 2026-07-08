@@ -283,6 +283,9 @@ export type AppSettings = {
 
   // Low Level
   enableHardwareAcceleration: boolean;
+
+  // Policy Rate API
+  policyRateApiUrl: string;
 };
 
 export function isLogEnabled(type: LogType, appSettings: AppSettings): boolean {
@@ -429,6 +432,7 @@ export function defaultAppSettings(opt?: {
     lastOtherFilePath: "",
     emptyRecordInfoVisibility: true,
     enableHardwareAcceleration: true,
+    policyRateApiUrl: "http://127.0.0.1:8765",
   };
 }
 

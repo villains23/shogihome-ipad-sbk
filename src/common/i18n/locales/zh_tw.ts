@@ -318,6 +318,7 @@ export const zh_tw: Texts = {
   branchListMode: "分岐の表示", // TODO: Translate
   previousMoveBranches: "着手した手", // TODO: Translate
   nextMoveBranches: "次の手", // TODO: Translate
+  policyRateApiUrl: "採択率API URL", // TODO: Translate
   bookmark: "書籤",
   bookmarkList: "書籤一覽",
   useBookmarkAsHeader: "將書籤名稱作為標題",

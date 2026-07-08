@@ -324,6 +324,9 @@ class AppSettingsStore {
   get enableHardwareAcceleration(): boolean {
     return this.merged.enableHardwareAcceleration;
   }
+  get policyRateApiUrl(): string {
+    return this.merged.policyRateApiUrl;
+  }
 
   async loadAppSettings(): Promise<void> {
     this.settings = await api.loadAppSettings();

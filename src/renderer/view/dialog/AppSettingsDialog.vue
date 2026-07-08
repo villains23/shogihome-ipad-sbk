@@ -523,6 +523,16 @@
           ]"
         />
       </div>
+      <!-- 採択率API URL -->
+      <div class="form-item row">
+        <div class="form-item-label-wide">{{ t.policyRateApiUrl }}</div>
+        <input
+          v-model="update.policyRateApiUrl"
+          class="file-path"
+          type="text"
+          placeholder="http://127.0.0.1:8765"
+        />
+      </div>
     </div>
     <!-- 定跡 -->
     <div
@@ -938,6 +948,7 @@ const update = ref({
   enableCSALog: org.enableCSALog,
   logLevel: org.logLevel,
   enableHardwareAcceleration: org.enableHardwareAcceleration,
+  policyRateApiUrl: org.policyRateApiUrl,
 });
 const versionStatus = ref({} as VersionStatus);
 

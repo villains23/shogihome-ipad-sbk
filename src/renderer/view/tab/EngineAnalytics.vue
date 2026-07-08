@@ -1,6 +1,7 @@
 <template>
   <div>
     <div class="full column">
+      <PolicyRatePanel v-if="!isMobileWebApp()" />
       <EngineAnalyticsElement
         v-for="monitor in monitors"
         :key="monitor.sessionID"
@@ -24,13 +25,16 @@
 import { USIPlayerMonitor } from "@/renderer/store/usi";
 
 const emptyMonitor = new USIPlayerMonitor(0, "");
+const POLICY_PANEL_HEIGHT = 120;
 </script>
 
 <script setup lang="ts">
 import { useStore } from "@/renderer/store";
 import { computed } from "vue";
 import EngineAnalyticsElement from "@/renderer/view/tab/EngineAnalyticsElement.vue";
+import PolicyRatePanel from "@/renderer/view/tab/PolicyRatePanel.vue";
 import { RectSize } from "@/common/assets/geometry.js";
+import { isMobileWebApp } from "@/renderer/ipc/api.js";
 
 const props = defineProps({
   size: { type: RectSize, required: true },
@@ -49,7 +53,8 @@ const store = useStore();
 
 const elementHeight = computed(() => {
   const rows = store.usiMonitors.length;
-  return props.size.height / (rows || 1);
+  const panelHeight = isMobileWebApp() ? 0 : POLICY_PANEL_HEIGHT;
+  return (props.size.height - panelHeight) / (rows || 1);
 });
 
 const monitors = computed(() => {

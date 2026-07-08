@@ -304,6 +304,7 @@ export type Texts = {
   branchListMode: string;
   previousMoveBranches: string;
   nextMoveBranches: string;
+  policyRateApiUrl: string;
   bookmark: string;
   bookmarkList: string;
   useBookmarkAsHeader: string;

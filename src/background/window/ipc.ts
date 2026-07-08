@@ -104,7 +104,7 @@ import { SessionStates } from "@/common/advanced/monitor.js";
 import { createCommandWindow } from "./prompt.js";
 import { PromptTarget } from "@/common/advanced/prompt.js";
 import { Command, CommandType } from "@/common/advanced/command.js";
-import { fetch } from "@/background/helpers/http.js";
+import { fetch, postJson } from "@/background/helpers/http.js";
 import * as uri from "@/common/uri.js";
 import { openPath } from "@/background/helpers/electron.js";
 import {
@@ -400,6 +400,14 @@ ipcMain.handle(Background.LOAD_REMOTE_TEXT_FILE, async (event, url: string) => {
   validateIPCSender(event.senderFrame);
   return await fetch(url);
 });
+
+ipcMain.handle(
+  Background.FETCH_POLICY_RATE,
+  async (event, url: string, body: string): Promise<string> => {
+    validateIPCSender(event.senderFrame);
+    return await postJson(url, body);
+  },
+);
 
 ipcMain.handle(
   Background.CROP_PIECE_IMAGE,

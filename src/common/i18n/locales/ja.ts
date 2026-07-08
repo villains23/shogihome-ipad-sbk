@@ -311,6 +311,7 @@ export const ja: Texts = {
   branchListMode: "分岐の表示",
   previousMoveBranches: "着手した手",
   nextMoveBranches: "次の手",
+  policyRateApiUrl: "採択率API URL",
   bookmark: "しおり",
   bookmarkList: "しおり一覧",
   useBookmarkAsHeader: "しおりを見出しに使う",
