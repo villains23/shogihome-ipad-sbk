@@ -102,7 +102,19 @@
             stroke-linecap="round"
             marker-end="url(#board-arrowhead)"
           />
+          <!-- 駒打ち: 持ち駒台→打つマス 矢印 + 駒種ラベル円 -->
           <g v-else>
+            <line
+              :x1="arrow.x1"
+              :y1="arrow.y1"
+              :x2="arrow.x2 + arrow.dropOffsetX"
+              :y2="arrow.y2"
+              stroke="#fe0000"
+              :stroke-width="arrowStrokeWidth"
+              :stroke-opacity="arrow.opacity"
+              stroke-linecap="round"
+              marker-end="url(#board-arrowhead)"
+            />
             <circle
               :cx="arrow.x2 + arrow.dropOffsetX"
               :cy="arrow.y2"
