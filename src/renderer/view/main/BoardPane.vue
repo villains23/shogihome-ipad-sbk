@@ -113,7 +113,7 @@ const BOOK_ARROW_OPACITY = 0.6;
 
 const allCandidates = computed(() => {
   const base = store.candidates;
-  if (!isMobileWebApp() || !bookStore.isLoaded || !bookStore.bookArrowsVisible) {
+  if (!bookStore.isLoaded || !bookStore.bookArrowsVisible) {
     return base;
   }
   const position = store.record.position;

@@ -23,6 +23,11 @@
           :label="t.flippedBook"
           @update:value="onUpdateFlippedBook"
         />
+        <ToggleButton
+          :value="bookStore.bookArrowsVisible"
+          :label="t.showBookArrows"
+          @update:value="bookStore.toggleBookArrows"
+        />
       </div>
       <BookMoveDialog
         v-if="editingData"
