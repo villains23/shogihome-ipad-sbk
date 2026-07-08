@@ -336,5 +336,17 @@ export function isMobileWebApp(): boolean {
     return false;
   }
   const urlParams = new URL(window.location.toString()).searchParams;
-  return urlParams.has("mobile");
+  if (urlParams.has("mobile")) {
+    return true;
+  }
+  // Auto-detect iPhone / iPad (iOS 12 and below show "iPad" in UA)
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad/.test(ua)) {
+    return true;
+  }
+  // iPadOS 13+ reports as "Macintosh" but has touch support
+  if (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) {
+    return true;
+  }
+  return false;
 }

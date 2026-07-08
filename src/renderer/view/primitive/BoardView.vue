@@ -102,14 +102,27 @@
             stroke-linecap="round"
             marker-end="url(#board-arrowhead)"
           />
-          <circle
-            v-else
-            :cx="arrow.x2"
-            :cy="arrow.y2"
-            :r="arrowWidth / 2"
-            fill="#fe0000"
-            :fill-opacity="arrow.opacity"
-          />
+          <g v-else>
+            <circle
+              :cx="arrow.x2 + arrow.dropOffsetX"
+              :cy="arrow.y2"
+              :r="arrowWidth / 2"
+              fill="#fe0000"
+              :fill-opacity="arrow.opacity"
+            />
+            <text
+              :x="arrow.x2 + arrow.dropOffsetX"
+              :y="arrow.y2"
+              text-anchor="middle"
+              dominant-baseline="central"
+              :font-size="arrowWidth * 0.65"
+              font-weight="bold"
+              fill="white"
+              :fill-opacity="arrow.opacity"
+              pointer-events="none"
+              style="user-select: none"
+            >{{ arrow.dropPieceName }}</text>
+          </g>
         </template>
       </svg>
       <div
@@ -259,6 +272,7 @@ import {
   PositionChange,
   secondsToHHMMSS,
   reverseColor,
+  pieceTypeToStringForMove,
 } from "tsshogi";
 import { computed, reactive, ref, watch, onMounted, onUnmounted, PropType } from "vue";
 import {
@@ -1003,6 +1017,18 @@ const arrows = computed(() => {
     (best, c) => (c.score !== undefined && (best === undefined || c.score > best) ? c.score : best),
     undefined,
   );
+
+  // Count how many drops target the same square (for horizontal offset when >1)
+  const dropGroupCounts = new Map<number, number>();
+  for (const candidate of props.candidates) {
+    const move = candidate.move;
+    if (!(move.from instanceof Square)) {
+      const key = move.to.index;
+      dropGroupCounts.set(key, (dropGroupCounts.get(key) ?? 0) + 1);
+    }
+  }
+  const dropGroupProgress = new Map<number, number>();
+
   return props.candidates.map((candidate, index) => {
     const move = candidate.move;
     const boardBase = layoutBuilder.value.boardBasePoint;
@@ -1058,6 +1084,18 @@ const arrows = computed(() => {
     const horizontalFactor = distance > 0 ? Math.abs(dx) / distance : 0;
     const labelOffsetY = dy > 0 ? -horizontalFactor * 12 : horizontalFactor * 12;
 
+    // Piece drop: compute label and horizontal offset for same-square disambiguation
+    let dropPieceName: string | undefined;
+    let dropOffsetX = 0;
+    if (isDrop) {
+      dropPieceName = pieceTypeToStringForMove(move.from as PieceType);
+      const key = move.to.index;
+      const count = dropGroupCounts.get(key) ?? 1;
+      const progress = dropGroupProgress.get(key) ?? 0;
+      dropGroupProgress.set(key, progress + 1);
+      dropOffsetX = (progress - (count - 1) / 2) * arrowWidth.value * 1.2;
+    }
+
     return {
       id: move.usi,
       x1,
@@ -1065,6 +1103,8 @@ const arrows = computed(() => {
       x2,
       y2,
       isDrop,
+      dropPieceName,
+      dropOffsetX,
       opacity: candidate.opacity ?? 1,
       labelText,
       labelStyle: {
